@@ -48,7 +48,6 @@ const has=(page,number)=>page.includes('data-id="koap-'+number+'"');
   grid.fire('click',{target:{closest:()=>button}});
   await sleep(30);
   assert.strictEqual(clipboard,phrase,'Кнопка копирует не ту фразу');
-  // Проверяем, что открытие первой карточки не закрывает другую и что раскрытие сохраняется после сортировки.
   await search('штрафы');
   function open(id){
     const cls=new Set();const btn={dataset:{id},classList:{contains:n=>n==='view-detail'},setAttribute(){},closest:()=>({classList:{contains:n=>cls.has(n),toggle:(n,b)=>{if(b)cls.add(n);else cls.delete(n)}}})};

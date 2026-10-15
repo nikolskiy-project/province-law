@@ -10,8 +10,6 @@
   };
   const ORDER = ['koap','pdd','uk','fzop'];
   const STOP = new Set(['и','или','на','по','что','к','в','во','у','со','с','а','за','не','это','он','она','если','но','из','как','его','ее','я','мы','бы','же','ли','то','от','до','для','при','мне','машине','машина','авто']);
-  // Разговорные названия норм: синонимы ведут к содержанию, не заменяя
-  // опубликованные статьи. targets повышает точность для заведомо известных норм.
   const GROUPS = [
     {aliases:['поворотник','поворотники','поворотн','не показал поворот','забыл поворотник','не включил поворотник'], terms:['поворотник','указател поворот','сигнал поворот'], targets:['koap-8.1','pdd-9.1','pdd-9.2']},
     {aliases:['документ','документы','доккументы','документь','доки','нет документов','не показал документы'], terms:['документ','удостоверен','предъявлен документ'], targets:['koap-5.1','koap-5.2','pdd-2.1.1']},
@@ -49,7 +47,6 @@
   const norm = (s) => String(s ?? '').toLocaleLowerCase('ru-RU').normalize('NFKC').replace(/ё/g,'е').replace(/[«»“”]/g,' ').replace(/[‐‑–—-]/g,' ').replace(/[^a-zа-я0-9.]+/gi,' ').replace(/\s+/g,' ').trim();
   const h = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const icon = (name) => `<svg aria-hidden="true"><use href="#ic-${name}"></use></svg>`;
-  // Optimal-string-alignment distance. Для коротких запросов допускается только одна опечатка.
   function distance(a,b,cutoff=2) {
     if (a===b) return 0;
     if (Math.abs(a.length-b.length)>cutoff) return cutoff+1;
@@ -69,8 +66,6 @@
     return prev[b.length];
   }
   const similar=(a,b)=>a===b || (a.length>=4&&b.length>=4&&(a.startsWith(b)||b.startsWith(a))) || ((a.length>=5&&b.length>=5)&&distance(a,b,1)<=1);
-  // Суммы и диапазоны читаем ТОЛЬКО из поля sanction, а не из текста статьи.
-  // Так годы лишения прав, номера статей и проценты тонировки не попадут в поиск штрафов.
   const MONEY_VALUE = /(?<!\d)(\d{1,3}(?:[ \u00a0\u202f.,]\d{3})+|\d{1,9})(?:\s*(тыс(?:яч(?:а|и|у)?)?\.?|млн\.?|к))?(?!\d)/gi;
   const FINE_WORD = /штраф(?:а|у|ом|е|ы|ов)?(?![а-яё])/gi;
   const RUBLES = /(?:руб(?:лей|ля(?:ми|х)?|ль|\.)?|₽)(?![а-яё])/i;
@@ -83,9 +78,6 @@
     const value=numeric*multiplier(unit);
     return Number.isSafeInteger(value)&&value>=0 ? value : null;
   }
-  // По умолчанию число — ОБЩАЯ СУММА НЕУПЛАЧЕННЫХ штрафов,
-  // а не размер санкции, назначаемой по статье.
-  // Только явный запрос «наказание 30 000» переключает на размер взыскания.
   function parseMoneyQuery(q){
     const original=String(q??'').toLowerCase().replace(/ё/g,'е').replace(/[\u00a0\u202f]/g,' ').trim();
     const penalty=/^(?:размер\s+штрафа|размер\s+наказания|наказание|взыскание)(?=\s|$)/i.test(original);
@@ -93,12 +85,9 @@
     const m=cleaned.match(/^(\d+(?:[\s.,]\d+)*)(?:\s*(тыс(?:яч(?:а|и|у)?)?\.?|млн\.?|к))?$/i);
     if(!m)return null;
     const n=amountValue(m[1],m[2]);
-    // «17.5» = номер статьи, не сумма.
     return n!==null&&n>=1000 ? {value:n,kind:penalty?'penalty':'debt'} : null;
   }
   function parseFineQuery(q){return parseMoneyQuery(q)?.value??null;}
-  // Диапазоны долга извлекаем только из условия нарушения ДО описания наказания.
-  // «Штраф — 50 000» не имеет отношения к сумме уже неуплаченных штрафов.
   function parseDebtRanges(row){
     const text=String(row.text||row.summary||'').replace(/[\u00a0\u202f]/g,' ').replace(/\s+/g,' ');
     const penaltyStart=text.search(/(?:^|[.!?;]\s*|\s)штраф\s*[-—–:]\s*\d/i);
@@ -145,14 +134,12 @@
       let cutoff=currency?.index;
       if(currency){
         const suffix=next.slice(currency.index+currency[0].length);
-        // Диапазон «от 50 000 руб. до 100 000 руб.» с двумя обозначениями валюты.
         if(/^\s*(?:до|по|[-–—])\s*\d/i.test(suffix)){
           const secondCurrency=suffix.match(RUBLES);
           if(secondCurrency)cutoff=currency.index+currency[0].length+secondCurrency.index;
         }
       }
       let clause=currency?next.slice(0,cutoff):next.split(/[.;]|(?:\s+или\s+арест)|(?:\s+и\s+арест)/i)[0];
-      // Не читаем цифры после следующего отдельного упоминания штрафа.
       const another=clause.search(FINE_WORD);
       if(another>=0)clause=clause.slice(0,another);
       const tokens=[...clause.matchAll(MONEY_VALUE)].slice(0,2);
@@ -161,7 +148,6 @@
       const between=second?clause.slice(first.index+first[0].length,second.index):'';
       const range=!!second&&/(?:-|–|—|−|…|(?:^|\s)(?:до|по)(?:\s|$))/i.test(between);
       let firstUnit=first[2]||'',secondUnit=second?.[2]||'';
-      // «от 50 до 100 тысяч» и «50–100 000» подразумевают тысячи в обоих концах.
       if(range&&!firstUnit){
         if(secondUnit)firstUnit=secondUnit;
         else if(amountValue(first[1])<1000&&amountValue(second[1])>=1000)firstUnit='тыс';
@@ -250,8 +236,6 @@
       else if(wordMatch(f.text,t))s=6;
       score+=s;
     }
-    // Точные разговорные синонимы дают приоритет нормам по существу.
-    // «Кирпич» и «запрещающий знак» не равны красному свету светофора.
     for(const group of groups){
       if(group.targets?.includes(entry.id)){
         const direct=group.aliases.some(alias=>norm(alias)===cleaned);
@@ -259,10 +243,7 @@
       }
     }
     if(tokens.length>1){score*=0.6+0.4*matches/tokens.length}
-    // Слишком общие слова в полном документе не должны засорять ответ.
     if(groups.length && core<13 && score<21) return 0;
-    // «Права» чаще означает водительское удостоверение, а не каждое
-    // случайное вхождение «лишение права» в санкциях всех кодексов.
     if(groups.some(g=>g.aliases.includes('права')) && groups.some(g=>g.aliases.some(a=>norm(a)===cleaned || tokens.some(t=>similar(t,norm(a)))))) {
       const licenseContext = /права|водительск.*удостовер|документ|пересдач|без прав|лишени.*прав/.test(f.tags+' '+f.title);
       if(!licenseContext) return 0;
@@ -291,7 +272,6 @@
     if(parseMoneyQuery(query)!==null)return h(value);
     const q=tokensFor(query);
     let words=[...q.tokens];
-    // Подсвечиваем только фактически присутствующие слова, без небезопасной вставки HTML.
     if(q.groups.length) words=[...words,...q.expanded.filter(x=>!x.includes(' '))];
     const escaped=h(value);
     const unique=[...new Set(words)].filter(x=>x.length>=3).sort((a,b)=>b.length-a.length).slice(0,9);

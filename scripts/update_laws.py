@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+
 """Построение статического поискового индекса по четырём публичным темам форума.
 
 Запуск: python scripts/update_laws.py
@@ -39,7 +39,7 @@ def normalize_line(s: str) -> str:
 
 def content_lines(raw_html: str) -> list[str]:
     soup = BeautifulSoup(raw_html, 'html.parser')
-    # Invision Community: текст самой первой записи в теме, не меню сайта и не ответы.
+
     post = (soup.select_one('article[data-commentid]') or
             soup.select_one('article.ipsComment') or
             soup.select_one('[data-role="commentContent"]') or
@@ -69,14 +69,14 @@ def parse_sections(lines: list[str], source: str) -> list[dict]:
     chapter = ''
     started = False
     for line in lines:
-        # Заголовки глав не воспринимаем как статьи, но запоминаем для карточек.
+
         if CHAPTER_RE.match(line) and (line.lower().startswith('глава ') or
                                        (source == 'pdd' and re.match(r'^\d+\.\s+\D', line))):
             chapter = line[:130]
         match = pattern.match(line)
         if match:
             num, rest = match.group(1), match.group(2)
-            # FZoP пункты первого раздела иногда оформлены только [1], [2] и т.д.
+
             if source == 'fzop' and not rest:
                 continue
             if current:
@@ -110,7 +110,7 @@ def parse_sections(lines: list[str], source: str) -> list[dict]:
         if source in ('koap', 'uk'):
             sanction_match = re.search(r'\b(?:Предупреждение|Штраф|Арест\s+сроком|Административный\s+арест)\b', text, flags=re.I)
             if sanction_match:
-                # Деление по точке с пробелом, не по разрядам 20.000.
+
                 tail = text[sanction_match.start():]
                 sanction = re.split(r'(?<!\d)\.\s+(?=[А-ЯЁ])', tail, maxsplit=1)[0][:230].strip()
         output.append({'id':f'{source}-{num}', 'source':source, 'number':num,
@@ -166,8 +166,8 @@ def main() -> int:
             missing = CRITICAL[key] - numbers
             if len(parsed) < MINIMUMS[key] or missing:
                 raise ValueError(f'Ненадёжный разбор: получено {len(parsed)}, минимум {MINIMUMS[key]}, отсутствуют {sorted(missing)}')
-            # Для знакомых статей сохраняем короткое, проверенное описание и бытовые синонимы,
-            # но всегда подставляем полный свежий текст для поиска и цитирования.
+
+
             for row in parsed:
                 prior = old_by_id.get(row['id'])
                 if prior and prior.get('tags'):

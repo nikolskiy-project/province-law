@@ -1,5 +1,4 @@
 'use strict';
-// Поведение курсора и прокрутки перенесено из исходного ReConfig Province.
 (() => {
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -80,11 +79,9 @@ function initDragScroll() {
   const beginInertia = () => {
     if (inertiaFrame) cancelAnimationFrame(inertiaFrame);
 
-    // Если перед отпусканием мышь уже почти остановилась — не запускаем старую скорость.
     const idleFor = performance.now() - lastMoveTime;
     if (idleFor > 85) velocity *= Math.max(0, 1 - (idleFor - 85) / 150);
 
-    // Небольшой «бросок», как у телефонного kinetic scrolling.
     velocity = Math.max(-2.7, Math.min(2.7, velocity * 1.22));
     if (Math.abs(velocity) < .055) {
       setKineticState(false);
@@ -102,10 +99,8 @@ function initDragScroll() {
       const next = Math.max(0, Math.min(limit, before + velocity * dt));
       window.scrollTo(0, next);
 
-      // Плавное затухание, почти как после свайпа на телефоне.
       velocity *= Math.pow(.946, dt / 16.667);
 
-      // При достижении края гасим остаточную скорость без рывка.
       if (next <= 0 || next >= limit) velocity *= .34;
 
       if (Math.abs(velocity) > .014) {
@@ -149,7 +144,6 @@ function initDragScroll() {
     const dt = Math.max(1, now - lastTime);
     const instantVelocity = (lastY - e.clientY) / dt;
 
-    // Последние движения имеют больший вес — направление броска ощущается естественно.
     velocity = velocity * .58 + instantVelocity * .42;
     lastY = e.clientY;
     lastTime = now;
@@ -183,8 +177,6 @@ function initDragScroll() {
     suppressClick = false;
   }, true);
 
-  // Кинетическая прокрутка колесом мыши: импульсы складываются,
-  // а после последнего шага страница продолжает движение и мягко тормозит.
   const wheelCanUseOwnScroller = (target, deltaY) => {
     let node = target instanceof Element ? target : null;
     while (node && node !== document.body && node !== root) {
@@ -222,8 +214,6 @@ function initDragScroll() {
       const next = Math.max(0, Math.min(limit, before + velocity * dt));
       window.scrollTo(0, next);
 
-      // Чуть более длинный хвост, чем у drag-свайпа: колесо ощущается
-      // плавным, но не «ватным».
       velocity *= Math.pow(.885, dt / 16.667);
       if (next <= 0 || next >= limit) velocity *= .28;
 
@@ -246,14 +236,11 @@ function initDragScroll() {
     e.preventDefault();
 
     const delta = normalizeWheelDelta(e);
-    // Сохраняем направление и накапливаем скорость при нескольких
-    // быстрых прокрутах подряд.
     velocity += delta * .0078;
     velocity = Math.max(-3.4, Math.min(3.4, velocity));
     startWheelInertia();
   }, { passive:false });
 
-  // Клавиатура и новый клик сразу останавливают остаточное движение.
   window.addEventListener('keydown', cancelInertia);
   document.addEventListener('mousedown', () => {
     if (!dragging && inertiaFrame) cancelInertia();
@@ -338,9 +325,6 @@ function initCustomScrollbar() {
 }
 
 
-
-// ReConfig-style dropdown: same .program-select shutter as in the Workshop,
-// with the original select preserved as the actual sorting state.
 function initProgramSort(){
   const native=$('#sortSelect');
   if(!native || native.nextElementSibling?.classList.contains('program-select')) return;
@@ -433,7 +417,6 @@ function initProgramSort(){
 }
 initProgramSort();
 
-// Та же анимация появления блоков, что и на ReConfig, с запасным вариантом без IntersectionObserver.
 function initReveals(){
   const elements=$$('.reveal');
   if (!('IntersectionObserver' in window)) { elements.forEach(el=>el.classList.add('visible')); return; }

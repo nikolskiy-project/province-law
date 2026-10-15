@@ -19,8 +19,7 @@
 html { scroll-behavior: smooth; scrollbar-width: none; }
 html, body { -ms-overflow-style: none; }
 
-/* Нативный scrollbar скрыт полностью: никаких системных стрелок/кнопок.
-   Вместо него справа рисуется собственный скруглённый ползунок. */
+
 html::-webkit-scrollbar,
 body::-webkit-scrollbar {
   width: 0;
