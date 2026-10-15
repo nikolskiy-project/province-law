@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f0f13">
+  <meta name="description" content="PROVINCE LAW — поиск по статьям КоАП, ПДД, УК и ФЗоП Республики Провинция.">
+  <title>PROVINCE LAW — правовой справочник</title>
+  <link rel="icon" href="assets/reconfig-logo.png" type="image/png">
+  <link rel="stylesheet" href="assets/reconfig-base.css?v=4">
+  <link rel="stylesheet" href="assets/style.css?v=6">
+</head>
+<body class="law-page">
+<svg class="svg-symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <symbol id="ic-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7.5"/><path d="m16.5 16.5 5 5"/></symbol>
+  <symbol id="ic-link" viewBox="0 0 24 24"><path d="M13 5h6v6m0-6-9 9"/><path d="M19 14v5H5V5h6"/></symbol>
+  <symbol id="ic-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2-2h2"/></symbol>
+  <symbol id="ic-check" viewBox="0 0 24 24"><path d="m5 12 4 4 10-10"/></symbol>
+  <symbol id="ic-chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+  <symbol id="ic-close" viewBox="0 0 24 24"><path d="M5 5 19 19M19 5 5 19"/></symbol>
+  <symbol id="ic-file" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></symbol>
+  <symbol id="ic-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+  <symbol id="ic-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5m0 3h.01"/></symbol>
+  <symbol id="ic-sliders" viewBox="0 0 24 24"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="2"/><circle cx="16" cy="17" r="2"/></symbol>
+</svg>
+<div class="page-noise" aria-hidden="true"></div>
+<div class="cursor-glow" id="cursorGlow" aria-hidden="true"></div>
+<div class="cursor-dot" id="cursorDot" aria-hidden="true"></div>
+<div class="cursor-ring" id="cursorRing" aria-hidden="true"></div>
+
+<header class="topbar" id="topbar">
+  <a href="#search" class="brand interactive" aria-label="PROVINCE LAW — на главную">
+    <img src="assets/reconfig-logo.png" class="brand-logo" alt="">
+    <span class="brand-copy"><strong>PROVINCE LAW</strong><small>by Nikolskiy</small></span>
+  </a>
+  <nav class="nav" aria-label="Навигация">
+    <a href="#search">Поиск</a>
+    <a href="#results">Статьи</a>
+    <a href="#sources">Документы</a>
+  </nav>
+  <a class="header-github interactive" href="#sources" aria-label="Посмотреть источники права">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+    <span>MTA Province</span>
+  </a>
+</header>
+
+<main>
+  <section class="law-hero section" id="search" aria-labelledby="heroTitle">
+    <div class="law-hero-orb orb-a" aria-hidden="true"></div><div class="law-hero-orb orb-b" aria-hidden="true"></div>
+    <div class="law-intro reveal">
+      <span class="law-overline">ReConfig Province / Правовой навигатор</span>
+      <h1 id="heroTitle"><span>Province</span><strong>Правовой справочник</strong></h1>
+      <p>КоАП, ПДД, УК и ФЗоП Республики Провинция. Найди подходящую статью по нарушению, номеру или сумме неоплаченных штрафов.</p>
+    </div>
+    <div class="search-panel reveal delay-1">
+      <div class="search-panel-head"><label for="searchInput">Поиск по нормативной базе</label><span class="shortcut"><kbd>Ctrl</kbd> + <kbd>K</kbd></span></div>
+      <div class="search-field" id="searchWrap">
+        <svg class="search-icon"><use href="#ic-search"/></svg>
+        <input type="search" id="searchInput" placeholder="Поворотник, кирпич, встречка, 70 000…" maxlength="180" autocomplete="off" spellcheck="false" aria-label="Поиск статей">
+        <button id="clearBtn" class="clear-btn" title="Очистить" aria-label="Очистить запрос" hidden><svg><use href="#ic-close"/></svg></button>
+        <span class="search-key" aria-hidden="true">↵</span>
+      </div>
+      <div class="quick-search"><span>Попробуй:</span><div class="suggestions" id="suggestions">
+        <button type="button" class="quick-chip interactive" data-query="Поворотник">Поворотник</button>
+        <button type="button" class="quick-chip interactive" data-query="Документы">Документы</button>
+        <button type="button" class="quick-chip interactive" data-query="Встречка">Встречка</button>
+        <button type="button" class="quick-chip interactive" data-query="Кирпич">Кирпич</button>
+        <button type="button" class="quick-chip interactive" data-query="70 000">70 000 ₽</button>
+      </div></div>
+    </div>
+    <p class="search-explainer reveal delay-2" id="searchExplainer">Поиск понимает синонимы: <b>кирпич</b> — <b>запрещающий знак</b>. Сумму задолженности можно вводить как <b>70000</b>, <b>70 000</b> или <b>70.000</b>. Для поиска по размеру самого наказания используй запрос <b>наказание 30 000</b>.</p>
+  </section>
+
+  <section class="law-results-section section" id="results" aria-label="Результаты поиска">
+    <div class="section-header results-head reveal">
+      <div><span class="kicker">Справочник</span><h2 id="resultsTitle">Все статьи <span id="resultCount">0</span></h2><p id="resultsCaption">Поиск по словам, номерам и задолженности</p></div>
+      <div class="sort-control"><svg><use href="#ic-sliders"/></svg><label class="sr-only" for="sortSelect">Сортировка</label><select id="sortSelect"><option value="relevance">По релевантности</option><option value="document">По документу</option><option value="number">По номеру</option></select></div>
+    </div>
+    <div class="filter-row reveal" id="filterRow" role="group" aria-label="Фильтрация по документам">
+      <button class="filter-pill selected interactive" data-source="all" aria-pressed="true">Все <span id="filter-all">0</span></button>
+      <button class="filter-pill interactive" data-source="koap" aria-pressed="false">КоАП <span id="filter-koap">0</span></button>
+      <button class="filter-pill interactive" data-source="pdd" aria-pressed="false">ПДД <span id="filter-pdd">0</span></button>
+      <button class="filter-pill interactive" data-source="uk" aria-pressed="false">УК <span id="filter-uk">0</span></button>
+      <button class="filter-pill interactive" data-source="fzop" aria-pressed="false">ФЗоП <span id="filter-fzop">0</span></button>
+    </div>
+    <div id="resultsGrid" class="results-grid" aria-live="polite" aria-busy="true"><div class="loading-card"><span class="spinner"></span> Загружаем нормативную базу...</div></div>
+    <button id="moreBtn" class="more-button interactive" hidden>Показать ещё <svg><use href="#ic-chevron"/></svg></button>
+  </section>
+
+  <section class="law-sources-section section" id="sources" aria-label="Нормативные документы">
+    <div class="section-header reveal"><div><span class="kicker">Первоисточники</span><h2>Нормативные документы</h2><p>Оригинальные темы форума Республики Провинция</p></div><span class="section-aside">04 / ДОКУМЕНТА</span></div>
+    <div class="source-grid" id="sourceGrid"><div class="source-skeleton"></div><div class="source-skeleton"></div><div class="source-skeleton"></div><div class="source-skeleton"></div></div>
+    <div class="data-notice" id="dataNotice" role="status" hidden><svg><use href="#ic-alert"/></svg><div><strong>Каталог ещё не полный</strong><p>Поиск работает по сохранённому каталогу. Автообновление отключено.</p></div></div>
+  </section>
+</main>
+<footer id="about" class="law-footer">
+  <div class="footer-brand"><img src="assets/reconfig-logo.png" alt=""><div><strong>PROVINCE LAW</strong><span>by Nikolskiy · MTA Province</span></div></div>
+  <div class="footer-links"><a href="#search">Поиск</a><a href="#results">Статьи</a><a href="#sources">Документы</a></div>
+  <div class="copyright"><span id="dataDate">База загружается</span><small>Неофициальный справочник · Проверяйте первоисточники</small></div>
+</footer>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script src="data/laws.js?v=20261015-2" defer></script>
+<script src="assets/app.js?v=20261015-3" defer></script>
+<script src="assets/site-ui.js?v=5" defer></script>
+</body>
+</html>
